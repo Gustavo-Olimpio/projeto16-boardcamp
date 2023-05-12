@@ -2,9 +2,33 @@ import { db } from "../database.connection.js";
 import dayjs from "dayjs";
 
 export async function getAlugueis(req, res) {
+    const array = []
     try {
-        const alugueis = await db.query(`SELECT * FROM rentals;`)
-        res.status(200).send(alugueis.rows)
+        const alugueis = await db.query(`SELECT rentals.*,games.name AS gamename,customers.name AS customersname FROM rentals JOIN games ON rentals."gameId"=games.id JOIN customers ON rentals."customerId"=customers.id`)
+        //console.log(alugueis.rows[1])
+        for (let i = 0; i < alugueis.rowCount; i++) {
+            let aluguel = alugueis.rows[i]
+            let objeto = {
+                id: aluguel.id,
+                customerId: aluguel.customerId,
+                gameId: aluguel.gameId,
+                rentDate: aluguel.rentDate,
+                daysRented: aluguel.daysRented,
+                returnDate: aluguel.returnDate,
+                originalPrice: aluguel.originalPrice,
+                delayFee: aluguel.Fee,
+                customer: {
+                    id: aluguel.customerId,
+                    name: aluguel.customersname
+                },
+                game: {
+                    id: aluguel.gameId,
+                    name: aluguel.gamename
+                }
+            }
+            array.push(objeto)
+        }
+        res.status(200).send(array)
     } catch (err) {
         return res.status(500).send(err.message);
     }
@@ -29,14 +53,14 @@ export async function postAlugueis(req, res) {
 }
 
 export async function postFinalizarAlugueis(req, res) {
-    const {id} = req.params
+    const { id } = req.params
     const returnDate = dayjs().format('YYYY-MM-DD')
     try {
         const alugueis = await db.query(`SELECT * FROM rentals WHERE id=${id};`)
         if (!alugueis.rows[0]) return res.status(404).send("Aluguel nao encontrado")
         if (alugueis.rows[0].delayFee !== null) return res.status(400).send("Aluguel finalizado")
-        let delayFee = (((new Date(returnDate)-new Date(alugueis.rows[0].rentDate))/(1000*60*60*24)).toFixed(0))*(alugueis.rows[0].originalPrice/alugueis.rows[0].daysRented)-alugueis.rows[0].originalPrice
-        if (delayFee <= 0){
+        let delayFee = (((new Date(returnDate) - new Date(alugueis.rows[0].rentDate)) / (1000 * 60 * 60 * 24)).toFixed(0)) * (alugueis.rows[0].originalPrice / alugueis.rows[0].daysRented) - alugueis.rows[0].originalPrice
+        if (delayFee <= 0) {
             delayFee = 0
         }
         console.log(delayFee)
@@ -46,14 +70,14 @@ export async function postFinalizarAlugueis(req, res) {
         return res.status(500).send(err.message);
     }
 }
-export async function deleteAlugueis (req,res){
-    const {id} = req.params
-    try{
-    const alugueis = await db.query(`SELECT * FROM rentals WHERE id=${id};`)       
-    if (!alugueis.rows[0]) return res.status(404).send("Aluguel nao encontrado")
-    if (alugueis.rows[0].returnDate==null) return res.status(400).send("Aluguel nao finalizado")
-    await db.query(`DELETE FROM rentals WHERE id=${id};`)
-    return res.status(200).send("OK")
+export async function deleteAlugueis(req, res) {
+    const { id } = req.params
+    try {
+        const alugueis = await db.query(`SELECT * FROM rentals WHERE id=${id};`)
+        if (!alugueis.rows[0]) return res.status(404).send("Aluguel nao encontrado")
+        if (alugueis.rows[0].returnDate == null) return res.status(400).send("Aluguel nao finalizado")
+        await db.query(`DELETE FROM rentals WHERE id=${id};`)
+        return res.status(200).send("OK")
     } catch (err) {
         return res.status(500).send(err.message);
     }
