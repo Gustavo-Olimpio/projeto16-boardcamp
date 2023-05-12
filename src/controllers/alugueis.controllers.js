@@ -31,12 +31,15 @@ export async function postAlugueis(req, res) {
 export async function postFinalizarAlugueis(req, res) {
     const {id} = req.params
     const returnDate = dayjs().format('YYYY-MM-DD')
-    
     try {
         const alugueis = await db.query(`SELECT * FROM rentals WHERE id=${id};`)
         if (!alugueis.rows[0]) return res.status(404).send("Aluguel nao encontrado")
         if (alugueis.rows[0].delayFee !== null) return res.status(400).send("Aluguel finalizado")
-        const delayFee = (((new Date(alugueis.rows[0].rentDate)-new Date(returnDate))/(1000*60*60*24)).toFixed(0))*(alugueis.rows[0].originalPrice/alugueis.rows[0].daysRented)
+        let delayFee = (((new Date(alugueis.rows[0].rentDate)-new Date(returnDate))/(1000*60*60*24)).toFixed(0))*(alugueis.rows[0].originalPrice/alugueis.rows[0].daysRented)-alugueis.rows[0].originalPrice
+        if (delayFee <= 0){
+            delayFee = 0
+        }
+        console.log(delayFee)
         await db.query(`UPDATE rentals SET "returnDate"='${returnDate}',"delayFee"=${delayFee} WHERE id=${id}`)
         res.status(200).send(alugueis.rows[0])
     } catch (err) {
