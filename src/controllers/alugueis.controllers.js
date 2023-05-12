@@ -35,7 +35,7 @@ export async function postFinalizarAlugueis(req, res) {
         const alugueis = await db.query(`SELECT * FROM rentals WHERE id=${id};`)
         if (!alugueis.rows[0]) return res.status(404).send("Aluguel nao encontrado")
         if (alugueis.rows[0].delayFee !== null) return res.status(400).send("Aluguel finalizado")
-        let delayFee = (((new Date(alugueis.rows[0].rentDate)-new Date(returnDate))/(1000*60*60*24)).toFixed(0))*(alugueis.rows[0].originalPrice/alugueis.rows[0].daysRented)-alugueis.rows[0].originalPrice
+        let delayFee = (((new Date(returnDate)-new Date(alugueis.rows[0].rentDate))/(1000*60*60*24)).toFixed(0))*(alugueis.rows[0].originalPrice/alugueis.rows[0].daysRented)-alugueis.rows[0].originalPrice
         if (delayFee <= 0){
             delayFee = 0
         }
