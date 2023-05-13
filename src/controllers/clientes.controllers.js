@@ -3,7 +3,6 @@ import dayjs from "dayjs";
 
 export async function postClientes(req, res) {
     const {name,phone,cpf,birthday} = req.body
-    console.log(dayjs(birthday).format('YYYY-MM-DD'))
     try{
         const verificaCpf = await db.query(`SELECT * FROM customers WHERE cpf='${cpf}'`)
         if (verificaCpf.rowCount > 0) return res.status(409).send("Desculpe, esse CPF ja foi cadastrado")
@@ -18,11 +17,31 @@ export async function getClientes(req, res) {
     try{
         if (!req.params.id){
                 const clientes = await db.query(`SELECT * FROM customers;`)
-                res.status(200).send(clientes.rows)
+                const array=[]
+                for (let i=0;i<clientes.rowCount;i++){
+                    const objeto = {
+                        id:clientes.rows[i].id,
+                        name:clientes.rows[i].name,
+                        phone:clientes.rows[i].phone,
+                        cpf:clientes.rows[i].cpf,
+                        birthday:dayjs(clientes.rows[i].birthday).format('YYYY-MM-DD')
+                    }
+                    array.push(objeto)  
+                }
+                
+                res.status(200).send(array)
         } else {
                 const clientes = await db.query(`SELECT * FROM customers WHERE id=${req.params.id};`)
                 if (!clientes.rows[0]) return res.status(404).send("Nao existe cliente com esse ID") 
-                res.status(200).send(clientes.rows[0]) 
+                const objeto = {
+                    id:clientes.rows[0].id,
+                    name:clientes.rows[0].name,
+                    phone:clientes.rows[0].phone,
+                    cpf:clientes.rows[0].cpf,
+                    birthday:dayjs(clientes.rows[0].birthday).format('YYYY-MM-DD')
+                }
+                
+                res.status(200).send(objeto) 
         }
         } catch (err) {
         return res.status(500).send(err.message);
