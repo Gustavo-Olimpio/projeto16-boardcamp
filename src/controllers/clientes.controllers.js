@@ -5,6 +5,7 @@ export async function postClientes(req, res) {
     const {name,phone,cpf,birthday} = req.body
     try{
         const verificaCpf = await db.query(`SELECT * FROM customers WHERE cpf='${cpf}'`)
+        if(new Date(birthday) == "Invalid Date") return res.status(400).send("Insira uma data valida")
         if (verificaCpf.rowCount > 0) return res.status(409).send("Desculpe, esse CPF ja foi cadastrado")
         await db.query(`INSERT INTO customers (name,phone,cpf,birthday) VALUES ('${name}','${phone}','${cpf}','${dayjs(birthday).format('YYYY-MM-DD')}');`)
         res.sendStatus(201)
@@ -54,6 +55,7 @@ export async function putClientes(req, res) {
     try{
         const verificaCpf = await db.query(`SELECT * FROM customers WHERE cpf='${cpf}' AND id!=${id}`)
         if (verificaCpf.rowCount > 0) return res.status(409).send("Desculpe, esse CPF ja foi cadastrado")
+        if(new Date(birthday) == "Invalid Date") return res.status(400).send("Insira uma data valida")
         await db.query(`UPDATE customers SET name='${name}',phone='${phone}',cpf='${cpf}',birthday='${birthday}' WHERE id=${id}`)
         res.status(200).send('OK')     
     } catch (err) {
