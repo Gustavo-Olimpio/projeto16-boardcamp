@@ -1,12 +1,13 @@
 import { db } from "../database.connection.js";
-
+import dayjs from "dayjs";
 
 export async function postClientes(req, res) {
     const {name,phone,cpf,birthday} = req.body
+    console.log(dayjs(birthday).format('YYYY-MM-DD'))
     try{
         const verificaCpf = await db.query(`SELECT * FROM customers WHERE cpf='${cpf}'`)
         if (verificaCpf.rowCount > 0) return res.status(409).send("Desculpe, esse CPF ja foi cadastrado")
-        await db.query(`INSERT INTO customers (name,phone,cpf,birthday) VALUES ('${name}','${phone}','${cpf}','${birthday}');`)
+        await db.query(`INSERT INTO customers (name,phone,cpf,birthday) VALUES ('${name}','${phone}','${cpf}','${dayjs(birthday).format('YYYY-MM-DD')}');`)
         res.sendStatus(201)
         } catch (err) {
         return res.status(500).send(err.message);

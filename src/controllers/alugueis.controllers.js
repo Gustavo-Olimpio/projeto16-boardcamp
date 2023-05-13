@@ -5,7 +5,6 @@ export async function getAlugueis(req, res) {
     const array = []
     try {
         const alugueis = await db.query(`SELECT rentals.*,games.name AS gamename,customers.name AS customersname FROM rentals JOIN games ON rentals."gameId"=games.id JOIN customers ON rentals."customerId"=customers.id`)
-        //console.log(alugueis.rows[1])
         for (let i = 0; i < alugueis.rowCount; i++) {
             let aluguel = alugueis.rows[i]
             let objeto = {
@@ -16,7 +15,7 @@ export async function getAlugueis(req, res) {
                 daysRented: aluguel.daysRented,
                 returnDate: aluguel.returnDate,
                 originalPrice: aluguel.originalPrice,
-                delayFee: aluguel.Fee,
+                delayFee: aluguel.delayFee,
                 customer: {
                     id: aluguel.customerId,
                     name: aluguel.customersname
